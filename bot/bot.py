@@ -4,7 +4,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 
 # ========== НАСТРОЙКИ ==========
 BOT_TOKEN = "8908486550:AAGT_kmknREziR-FWD1a-NbTqwWU77-B1rE"
-WEBAPP_URL = "https://github.com/grankinvalera0-droid/sudoku-mini-app"  # Замени на свой URL
+WEBAPP_URL = "https://grankinvalera0-droid.github.io/sudoku-mini-app/"  # ← должно быть так
 
 # ========== ОБРАБОТЧИКИ ==========
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
