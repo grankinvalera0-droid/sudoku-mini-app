@@ -1,12 +1,24 @@
-// ========== TELEGRAM WEB APP ==========
-const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
+// ========== БЕЗОПАСНОЕ ПОДКЛЮЧЕНИЕ TELEGRAM WEB APP ==========
+let tg = null;
+if (window.Telegram && window.Telegram.WebApp) {
+    tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
 
-// Установка темы Telegram
-document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#1a1a2e');
-document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#ffffff');
-document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#a0a0a0');
+    // Установка темы Telegram
+    document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#1a1a2e');
+    document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#ffffff');
+    document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#a0a0a0');
+}
+
+// Вспомогательная функция для показа сообщений (работает и в Telegram, и в браузере)
+function showAlert(message) {
+    if (tg && tg.showAlert) {
+        tg.showAlert(message);
+    } else {
+        alert(message);
+    }
+}
 
 // ========== КЛАСС СУДОКУ ==========
 class SudokuGame {
@@ -80,7 +92,7 @@ class SudokuGame {
         this.solution = Array(9).fill().map(() => Array(9).fill(0));
         this.fillBoard(this.solution);
         this.puzzle = this.solution.map(row => [...row]);
-        
+
         // Удаляем ячейки
         const cells = [];
         for (let i = 0; i < 9; i++) {
@@ -89,12 +101,12 @@ class SudokuGame {
             }
         }
         this.shuffle(cells);
-        
+
         for (let k = 0; k < this.cellsToRemove; k++) {
             const [row, col] = cells[k];
             this.puzzle[row][col] = 0;
         }
-        
+
         this.board = this.puzzle.map(row => [...row]);
     }
 
@@ -198,7 +210,7 @@ class App {
             screen.classList.remove('active');
         });
         this.screens[screenName].classList.add('active');
-        
+
         if (screenName === 'game') {
             this.renderBoard();
             this.startTimer();
@@ -225,24 +237,24 @@ class App {
                 cell.className = 'cell';
                 cell.dataset.row = row;
                 cell.dataset.col = col;
-                
+
                 const value = this.game.board[row][col];
                 const isGiven = this.game.puzzle[row][col] !== 0;
-                
+
                 if (isGiven) {
                     cell.classList.add('given');
                 } else if (value !== 0) {
                     cell.classList.add('user-input');
                 }
-                
+
                 cell.textContent = value || '';
-                
-                if (this.game.selectedCell && 
-                    this.game.selectedCell.row === row && 
+
+                if (this.game.selectedCell &&
+                    this.game.selectedCell.row === row &&
                     this.game.selectedCell.col === col) {
                     cell.classList.add('selected');
                 }
-                
+
                 this.boardElement.appendChild(cell);
             }
         }
@@ -251,14 +263,14 @@ class App {
     // Выбор клетки
     selectCell(row, col) {
         if (this.game.puzzle[row][col] !== 0) return; // Это подсказка
-        
+
         this.game.selectedCell = { row, col };
-        
+
         // Подсветка связанных клеток
         document.querySelectorAll('.cell').forEach(cell => {
             cell.classList.remove('highlighted-row', 'highlighted-col', 'highlighted-box');
         });
-        
+
         this.renderBoard();
     }
 
@@ -268,11 +280,11 @@ class App {
             this.shakeElement(document.querySelector('.numpad'));
             return;
         }
-        
+
         const { row, col } = this.game.selectedCell;
-        
+
         if (this.game.puzzle[row][col] !== 0) return;
-        
+
         if (num === 0) {
             // Стирание
             this.game.board[row][col] = 0;
@@ -282,7 +294,7 @@ class App {
                 this.game.mistakes++;
                 this.updateStats();
                 this.showError(row, col);
-                
+
                 if (this.game.mistakes >= this.game.maxMistakes) {
                     this.gameOver();
                     return;
@@ -290,9 +302,9 @@ class App {
             }
             this.game.board[row][col] = num;
         }
-        
+
         this.renderBoard();
-        
+
         if (this.game.checkWin()) {
             this.showWin();
         }
@@ -301,23 +313,23 @@ class App {
     // Показ подсказки
     showHint() {
         if (!this.game) return;
-        
+
         const hint = this.game.getHint();
         if (!hint) {
-            tg.showAlert('Нет доступных подсказок');
+            showAlert('Нет доступных подсказок');
             return;
         }
-        
+
         this.game.board[hint.row][hint.col] = hint.value;
         this.renderBoard();
-        
+
         // Анимация подсказки
         const hintCell = document.querySelector(`[data-row="${hint.row}"][data-col="${hint.col}"]`);
         if (hintCell) {
             hintCell.classList.add('hint');
             setTimeout(() => hintCell.classList.remove('hint'), 500);
         }
-        
+
         if (this.game.checkWin()) {
             this.showWin();
         }
@@ -344,7 +356,7 @@ class App {
             this.game.timerSeconds++;
             const minutes = Math.floor(this.game.timerSeconds / 60);
             const seconds = this.game.timerSeconds % 60;
-            this.timerElement.textContent = 
+            this.timerElement.textContent =
                 `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }, 1000);
     }
@@ -359,10 +371,10 @@ class App {
     // Победа
     showWin() {
         this.stopTimer();
-        
+
         document.getElementById('win-time').textContent = this.timerElement.textContent;
         document.getElementById('win-mistakes').textContent = this.game.mistakes;
-        
+
         const diffNames = {
             easy: 'Легко',
             medium: 'Средне',
@@ -370,9 +382,9 @@ class App {
             expert: 'Эксперт'
         };
         document.getElementById('win-difficulty').textContent = diffNames[this.game.difficulty];
-        
+
         this.showScreen('win');
-        
+
         // Вибрация (если доступно)
         if (window.navigator.vibrate) {
             window.navigator.vibrate([100, 50, 100, 50, 200]);
@@ -382,13 +394,14 @@ class App {
     // Поражение
     gameOver() {
         this.stopTimer();
-        tg.showAlert('Игра окончена! Слишком много ошибок.', () => {
+        showAlert('Игра окончена! Слишком много ошибок.', () => {
             this.showScreen('difficulty-screen');
         });
     }
 
     // Анимация тряски
     shakeElement(element) {
+        if (!element) return;
         element.style.animation = 'none';
         element.offsetHeight;
         element.style.animation = 'shake 0.5s ease';
@@ -397,5 +410,6 @@ class App {
 
 // ========== ЗАПУСК ==========
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Скрипт загружен');
     new App();
 });
