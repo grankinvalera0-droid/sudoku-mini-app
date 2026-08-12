@@ -1,3 +1,12 @@
+document.addEventListener('DOMContentLoaded', function() {
+    const ids = ['difficulty-screen', 'game-screen', 'win-screen', 'board', 'timer', 'mistakes'];
+    ids.forEach(id => {
+        if (!document.getElementById(id)) {
+            console.error('Элемент с id ' + id + ' не найден!');
+            alert('Ошибка: не найден элемент ' + id);
+        }
+    });
+});
 <!DOCTYPE html>
 <html lang="ru">
 <head>
