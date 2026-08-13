@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Судоку</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Заголовок -->
+        <div class="header">
+            <h1>🧩 Судоку</h1>
+            <div class="stats">
+                <div class="timer">⏱ <span id="timer">00:00</span></div>
+                <div class="mistakes">❤️ <span id="mistakes">0</span>/3</div>
+            </div>
+        </div>
+
+        <!-- Выбор сложности -->
+        <div id="difficulty-screen" class="screen active">
+            <div class="difficulty-container">
+                <h2>Выбери уровень</h2>
+                <div class="difficulty-grid">
+                    <button class="diff-btn easy" data-difficulty="easy">
+                        <span class="diff-icon">🟢</span>
+                        <span class="diff-name">Легко</span>
+                        <span class="diff-desc">30 клеток</span>
+                    </button>
+                    <button class="diff-btn medium" data-difficulty="medium">
+                        <span class="diff-icon">🟡</span>
+                        <span class="diff-name">Средне</span>
+                        <span class="diff-desc">40 клеток</span>
+                    </button>
+                    <button class="diff-btn hard" data-difficulty="hard">
+                        <span class="diff-icon">🔴</span>
+                        <span class="diff-name">Сложно</span>
+                        <span class="diff-desc">50 клеток</span>
+                    </button>
+                    <button class="diff-btn expert" data-difficulty="expert">
+                        <span class="diff-icon">💀</span>
+                        <span class="diff-name">Эксперт</span>
+                        <span class="diff-desc">55 клеток</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Игровое поле -->
+        <div id="game-screen" class="screen">
+            <div class="game-container">
+                <div id="board" class="board"></div>
+                
+                <!-- Цифровая клавиатура -->
+                <div class="numpad">
+                    <div class="numpad-row">
+                        <button class="num-btn" data-num="1">1</button>
+                        <button class="num-btn" data-num="2">2</button>
+                        <button class="num-btn" data-num="3">3</button>
+                        <button class="num-btn" data-num="4">4</button>
+                        <button class="num-btn" data-num="5">5</button>
+                    </div>
+                    <div class="numpad-row">
+                        <button class="num-btn" data-num="6">6</button>
+                        <button class="num-btn" data-num="7">7</button>
+                        <button class="num-btn" data-num="8">8</button>
+                        <button class="num-btn" data-num="9">9</button>
+                        <button class="num-btn erase" data-num="0">⌫</button>
+                    </div>
+                </div>
+
+                <div class="game-actions">
+                    <button class="action-btn hint-btn">💡 Подсказка</button>
+                    <button class="action-btn new-btn">🔄 Заново</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран победы -->
+        <div id="win-screen" class="screen">
+            <div class="win-container">
+                <div class="win-animation">🎉</div>
+                <h2>Поздравляю!</h2>
+                <p>Ты разгадал судоку!</p>
+                <div class="win-stats">
+                    <div class="win-stat">
+                        <span class="win-stat-label">Время</span>
+                        <span class="win-stat-value" id="win-time">00:00</span>
+                    </div>
+                    <div class="win-stat">
+                        <span class="win-stat-label">Ошибки</span>
+                        <span class="win-stat-value" id="win-mistakes">0</span>
+                    </div>
+                    <div class="win-stat">
+                        <span class="win-stat-label">Уровень</span>
+                        <span class="win-stat-value" id="win-difficulty">-</span>
+                    </div>
+                </div>
+                <button class="play-again-btn">Играть снова</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
