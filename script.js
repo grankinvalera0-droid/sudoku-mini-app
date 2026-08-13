@@ -148,10 +148,11 @@ class App {
     }
 
     initElements() {
+        // Используем полные id в качестве ключей
         this.screens = {
-            difficulty: document.getElementById('difficulty-screen'),
-            game: document.getElementById('game-screen'),
-            win: document.getElementById('win-screen')
+            'difficulty-screen': document.getElementById('difficulty-screen'),
+            'game-screen': document.getElementById('game-screen'),
+            'win-screen': document.getElementById('win-screen')
         };
         this.boardElement = document.getElementById('board');
         this.timerElement = document.getElementById('timer');
@@ -206,12 +207,16 @@ class App {
     }
 
     showScreen(screenName) {
+        // Скрываем все экраны
         Object.values(this.screens).forEach(screen => {
-            screen.classList.remove('active');
+            if (screen) screen.classList.remove('active');
         });
-        this.screens[screenName].classList.add('active');
+        // Показываем нужный экран
+        if (this.screens[screenName]) {
+            this.screens[screenName].classList.add('active');
+        }
 
-        if (screenName === 'game') {
+        if (screenName === 'game-screen') {
             this.renderBoard();
             this.startTimer();
         } else {
@@ -225,7 +230,7 @@ class App {
         this.game.hintsLeft = 3;
         this.game.timerSeconds = 0;
         this.updateStats();
-        this.showScreen('game');
+        this.showScreen('game-screen');
     }
 
     // Отрисовка поля
@@ -383,7 +388,7 @@ class App {
         };
         document.getElementById('win-difficulty').textContent = diffNames[this.game.difficulty];
 
-        this.showScreen('win');
+        this.showScreen('win-screen');
 
         // Вибрация (если доступно)
         if (window.navigator.vibrate) {
