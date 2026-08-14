@@ -124,6 +124,15 @@ body {
     backdrop-filter: blur(10px);
 }
 
+/* Дополнительно задаём цвет для вложенных элементов, чтобы точно наследовался */
+.diff-btn .diff-name {
+    color: var(--tg-theme-text-color, #ffffff);
+}
+
+.diff-btn .diff-desc {
+    color: var(--tg-theme-hint-color, #a0a0a0);
+}
+
 .diff-btn:active {
     transform: scale(0.97);
 }
@@ -144,7 +153,6 @@ body {
 }
 
 .diff-desc {
-    color: var(--tg-theme-hint-color, #a0a0a0);
     font-size: 14px;
 }
 
