@@ -100,6 +100,26 @@
                 <button class="play-again-btn">Играть снова</button>
             </div>
         </div>
+
+        <!-- Экран проигрыша -->
+        <div id="lose-screen" class="screen">
+            <div class="lose-container">
+                <div class="lose-animation">😞</div>
+                <h2>Ты проиграл!</h2>
+                <p>Слишком много ошибок</p>
+                <div class="lose-stats">
+                    <div class="lose-stat">
+                        <span class="lose-stat-label">Время</span>
+                        <span class="lose-stat-value" id="lose-time">00:00</span>
+                    </div>
+                    <div class="lose-stat">
+                        <span class="lose-stat-label">Уровень</span>
+                        <span class="lose-stat-value" id="lose-difficulty">-</span>
+                    </div>
+                </div>
+                <button class="lose-retry-btn">Попробовать снова</button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
