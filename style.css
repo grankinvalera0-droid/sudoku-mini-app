@@ -351,6 +351,71 @@ body {
     transform: scale(0.95);
 }
 
+/* ========== ЭКРАН ПРОИГРЫША ========== */
+.lose-container {
+    text-align: center;
+    padding-top: 60px;
+}
+
+.lose-animation {
+    font-size: 80px;
+    animation: shake 1s ease infinite;
+}
+
+.lose-container h2 {
+    font-size: 36px;
+    margin: 20px 0 10px;
+    color: #ff4757;
+}
+
+.lose-container p {
+    font-size: 18px;
+    color: var(--tg-theme-hint-color, #a0a0a0);
+    margin-bottom: 30px;
+}
+
+.lose-stats {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.lose-stat {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 12px;
+    min-width: 80px;
+}
+
+.lose-stat-label {
+    display: block;
+    font-size: 12px;
+    color: var(--tg-theme-hint-color, #a0a0a0);
+    margin-bottom: 5px;
+}
+
+.lose-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.lose-retry-btn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.lose-retry-btn:active {
+    transform: scale(0.95);
+}
+
 /* ========== АДАПТИВНОСТЬ ========== */
 @media (max-width: 400px) {
     .app {
