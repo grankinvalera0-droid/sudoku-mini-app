@@ -12,6 +12,7 @@
         <!-- Заголовок -->
         <div class="header">
             <h1>🧩 Судоку</h1>
+            <button class="settings-btn" id="open-settings" title="Настройки">⚙️</button>
             <div class="stats">
                 <div class="timer">⏱ <span id="timer">00:00</span></div>
                 <div class="mistakes">❤️ <span id="mistakes">0</span>/3</div>
@@ -118,6 +119,64 @@
                     </div>
                 </div>
                 <button class="lose-retry-btn">Попробовать снова</button>
+            </div>
+        </div>
+
+        <!-- Экран настроек -->
+        <div id="settings-screen" class="screen">
+            <div class="settings-container">
+                <h2>Настройки</h2>
+
+                <!-- Раздел Оформление -->
+                <div class="settings-section">
+                    <h3>🎨 Оформление</h3>
+                    <div class="setting-item">
+                        <span>Тема</span>
+                        <div class="theme-buttons">
+                            <button class="theme-btn active" data-theme="light">☀️</button>
+                            <button class="theme-btn" data-theme="dark">🌙</button>
+                            <button class="theme-btn" data-theme="auto">🔄</button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span>Яркость</span>
+                        <input type="range" id="brightness-slider" min="50" max="150" value="100">
+                        <span id="brightness-value">100%</span>
+                    </div>
+                </div>
+
+                <!-- Раздел Игра -->
+                <div class="settings-section">
+                    <h3>🎮 Игра</h3>
+                    <div class="setting-item">
+                        <span>Звук</span>
+                        <label class="switch">
+                            <input type="checkbox" id="sound-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Сложность по умолчанию</span>
+                        <select id="default-difficulty">
+                            <option value="easy">Легко</option>
+                            <option value="medium" selected>Средне</option>
+                            <option value="hard">Сложно</option>
+                            <option value="expert">Эксперт</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Раздел Приложение -->
+                <div class="settings-section">
+                    <h3>📱 Приложение</h3>
+                    <div class="setting-item">
+                        <span>Версия</span>
+                        <span>1.2.0</span>
+                    </div>
+                    <button class="reset-btn" id="reset-settings">Сбросить настройки</button>
+                </div>
+
+                <button class="back-btn" id="settings-back">← Назад</button>
             </div>
         </div>
     </div>
