@@ -13,6 +13,7 @@ body {
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 .app {
@@ -41,6 +42,7 @@ body {
 .header {
     text-align: center;
     margin-bottom: 30px;
+    position: relative;
 }
 
 .header h1 {
@@ -50,6 +52,29 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+}
+
+.settings-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--tg-theme-text-color, #ffffff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-btn:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .stats {
@@ -414,6 +439,166 @@ body {
 
 .lose-retry-btn:active {
     transform: scale(0.95);
+}
+
+/* ========== ЭКРАН НАСТРОЕК ========== */
+.settings-container {
+    padding: 20px 0;
+}
+
+.settings-container h2 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 30px;
+}
+
+.settings-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.settings-section h3 {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: var(--tg-theme-hint-color, #a0a0a0);
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Кнопки темы */
+.theme-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.theme-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.theme-btn.active {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.3);
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+/* Ползунок яркости */
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 120px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #667eea;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Переключатель */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 28px;
+    transition: 0.3s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+input:checked + .slider {
+    background: #667eea;
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+/* Селект */
+select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    font-size: 16px;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Кнопки */
+.reset-btn, .back-btn {
+    background: rgba(255, 71, 87, 0.2);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    color: white;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.2s ease;
+}
+
+.back-btn {
+    background: rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.3);
+    margin-top: 20px;
+}
+
+.reset-btn:active, .back-btn:active {
+    transform: scale(0.97);
 }
 
 /* ========== АДАПТИВНОСТЬ ========== */
