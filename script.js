@@ -1,17 +1,64 @@
-// ========== БЕЗОПАСНОЕ ПОДКЛЮЧЕНИЕ TELEGRAM WEB APP ==========
+// ========== НАСТРОЙКИ ==========
+const DEFAULT_SETTINGS = {
+    theme: 'light',
+    brightness: 100,
+    sound: true,
+    defaultDifficulty: 'medium'
+};
+
+let settings = { ...DEFAULT_SETTINGS };
+
+// Загрузка настроек из localStorage
+function loadSettings() {
+    const saved = localStorage.getItem('sudoku-settings');
+    if (saved) {
+        try {
+            settings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+        } catch (e) {
+            settings = { ...DEFAULT_SETTINGS };
+        }
+    }
+}
+
+// Сохранение настроек
+function saveSettings() {
+    localStorage.setItem('sudoku-settings', JSON.stringify(settings));
+}
+
+// Применение настроек (тема и яркость)
+function applySettings() {
+    const root = document.documentElement;
+    
+    // Яркость (изменяем яркость фона и текста)
+    const brightness = settings.brightness / 100;
+    const bgColor = settings.theme === 'dark' ? '#1a1a2e' : '#f5f5f7';
+    const textColor = settings.theme === 'dark' ? '#ffffff' : '#1a1a2e';
+    const hintColor = settings.theme === 'dark' ? '#a0a0a0' : '#666666';
+    
+    // Применяем цвет с учётом яркости через CSS filter
+    root.style.setProperty('--tg-theme-bg-color', bgColor);
+    root.style.setProperty('--tg-theme-text-color', textColor);
+    root.style.setProperty('--tg-theme-hint-color', hintColor);
+    
+    // Для яркости используем filter на body (не самый точный, но наглядно)
+    if (settings.brightness !== 100) {
+        const filterValue = settings.brightness > 100 
+            ? `brightness(${settings.brightness}%)` 
+            : `brightness(${settings.brightness}%)`;
+        document.body.style.filter = filterValue;
+    } else {
+        document.body.style.filter = 'none';
+    }
+}
+
+// ========== TELEGRAM WEB APP ==========
 let tg = null;
 if (window.Telegram && window.Telegram.WebApp) {
     tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
-
-    // Установка темы Telegram
-    document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#1a1a2e');
-    document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#ffffff');
-    document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#a0a0a0');
 }
 
-// Вспомогательная функция для показа сообщений
 function showAlert(message) {
     if (tg && tg.showAlert) {
         tg.showAlert(message);
@@ -137,6 +184,7 @@ class App {
         this.game = null;
         this.initElements();
         this.initEvents();
+        this.applySettingsToUI();
         this.showScreen('difficulty-screen');
     }
 
@@ -145,7 +193,8 @@ class App {
             'difficulty-screen': document.getElementById('difficulty-screen'),
             'game-screen': document.getElementById('game-screen'),
             'win-screen': document.getElementById('win-screen'),
-            'lose-screen': document.getElementById('lose-screen')
+            'lose-screen': document.getElementById('lose-screen'),
+            'settings-screen': document.getElementById('settings-screen')
         };
         this.boardElement = document.getElementById('board');
         this.timerElement = document.getElementById('timer');
@@ -156,9 +205,18 @@ class App {
         this.newBtn = document.querySelector('.new-btn');
         this.playAgainBtn = document.querySelector('.play-again-btn');
         this.loseRetryBtn = document.querySelector('.lose-retry-btn');
+        this.openSettingsBtn = document.getElementById('open-settings');
+        this.settingsBackBtn = document.getElementById('settings-back');
+        this.resetSettingsBtn = document.getElementById('reset-settings');
+        this.themeButtons = document.querySelectorAll('.theme-btn');
+        this.brightnessSlider = document.getElementById('brightness-slider');
+        this.brightnessValue = document.getElementById('brightness-value');
+        this.soundToggle = document.getElementById('sound-toggle');
+        this.defaultDifficultySelect = document.getElementById('default-difficulty');
     }
 
     initEvents() {
+        // Существующие события...
         this.difficultyButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const difficulty = btn.dataset.difficulty;
@@ -173,21 +231,10 @@ class App {
             });
         });
 
-        this.hintBtn.addEventListener('click', () => {
-            this.showHint();
-        });
-
-        this.newBtn.addEventListener('click', () => {
-            this.showScreen('difficulty-screen');
-        });
-
-        this.playAgainBtn.addEventListener('click', () => {
-            this.showScreen('difficulty-screen');
-        });
-
-        this.loseRetryBtn.addEventListener('click', () => {
-            this.showScreen('difficulty-screen');
-        });
+        this.hintBtn.addEventListener('click', () => this.showHint());
+        this.newBtn.addEventListener('click', () => this.showScreen('difficulty-screen'));
+        this.playAgainBtn.addEventListener('click', () => this.showScreen('difficulty-screen'));
+        this.loseRetryBtn.addEventListener('click', () => this.showScreen('difficulty-screen'));
 
         this.boardElement.addEventListener('click', (e) => {
             const cell = e.target.closest('.cell');
@@ -196,6 +243,91 @@ class App {
             const col = parseInt(cell.dataset.col);
             this.selectCell(row, col);
         });
+
+        // События настроек
+        this.openSettingsBtn.addEventListener('click', () => this.showScreen('settings-screen'));
+        this.settingsBackBtn.addEventListener('click', () => this.showScreen('difficulty-screen'));
+
+        this.themeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.themeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                settings.theme = btn.dataset.theme;
+                this.applySettingsToUI();
+                saveSettings();
+            });
+        });
+
+        this.brightnessSlider.addEventListener('input', () => {
+            settings.brightness = parseInt(this.brightnessSlider.value);
+            this.brightnessValue.textContent = `${settings.brightness}%`;
+            this.applySettingsToUI();
+            saveSettings();
+        });
+
+        this.soundToggle.addEventListener('change', () => {
+            settings.sound = this.soundToggle.checked;
+            saveSettings();
+        });
+
+        this.defaultDifficultySelect.addEventListener('change', () => {
+            settings.defaultDifficulty = this.defaultDifficultySelect.value;
+            saveSettings();
+        });
+
+        this.resetSettingsBtn.addEventListener('click', () => {
+            settings = { ...DEFAULT_SETTINGS };
+            saveSettings();
+            this.applySettingsToUI();
+            showAlert('Настройки сброшены');
+        });
+    }
+
+    applySettingsToUI() {
+        // Применяем тему и яркость
+        this.applyThemeAndBrightness();
+
+        // Обновляем активную кнопку темы
+        this.themeButtons.forEach(btn => {
+            if (btn.dataset.theme === settings.theme) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Обновляем ползунок яркости
+        this.brightnessSlider.value = settings.brightness;
+        this.brightnessValue.textContent = `${settings.brightness}%`;
+
+        // Обновляем переключатель звука
+        this.soundToggle.checked = settings.sound;
+
+        // Обновляем селект сложности
+        this.defaultDifficultySelect.value = settings.defaultDifficulty;
+    }
+
+    applyThemeAndBrightness() {
+        const root = document.documentElement;
+        const isDark = settings.theme === 'dark';
+        const brightness = settings.brightness / 100;
+
+        // Определяем базовые цвета темы
+        const bgColor = isDark ? '#1a1a2e' : '#f5f5f7';
+        const textColor = isDark ? '#ffffff' : '#1a1a2e';
+        const hintColor = isDark ? '#a0a0a0' : '#666666';
+
+        // Применяем CSS переменные
+        root.style.setProperty('--tg-theme-bg-color', bgColor);
+        root.style.setProperty('--tg-theme-text-color', textColor);
+        root.style.setProperty('--tg-theme-hint-color', hintColor);
+
+        // Применяем яркость через filter (может влиять на весь интерфейс)
+        if (settings.brightness !== 100) {
+            document.body.style.filter = `brightness(${settings.brightness}%)`;
+        } else {
+            document.body.style.filter = 'none';
+        }
     }
 
     showScreen(screenName) {
@@ -215,6 +347,10 @@ class App {
     }
 
     startGame(difficulty) {
+        // Используем настройку сложности по умолчанию, если не передана явно
+        if (!difficulty) {
+            difficulty = settings.defaultDifficulty || 'medium';
+        }
         this.game = new SudokuGame(difficulty);
         this.game.mistakes = 0;
         this.game.hintsLeft = 3;
@@ -256,13 +392,10 @@ class App {
 
     selectCell(row, col) {
         if (this.game.puzzle[row][col] !== 0) return;
-
         this.game.selectedCell = { row, col };
-
         document.querySelectorAll('.cell').forEach(cell => {
             cell.classList.remove('highlighted-row', 'highlighted-col', 'highlighted-box');
         });
-
         this.renderBoard();
     }
 
@@ -273,7 +406,6 @@ class App {
         }
 
         const { row, col } = this.game.selectedCell;
-
         if (this.game.puzzle[row][col] !== 0) return;
 
         if (num === 0) {
@@ -283,7 +415,6 @@ class App {
                 this.game.mistakes++;
                 this.updateStats();
                 this.showError(row, col);
-
                 if (this.game.mistakes >= this.game.maxMistakes) {
                     this.gameOver();
                     return;
@@ -293,7 +424,6 @@ class App {
         }
 
         this.renderBoard();
-
         if (this.game.checkWin()) {
             this.showWin();
         }
@@ -301,7 +431,6 @@ class App {
 
     showHint() {
         if (!this.game) return;
-
         const hint = this.game.getHint();
         if (!hint) {
             showAlert('Нет доступных подсказок');
@@ -331,7 +460,6 @@ class App {
     }
 
     updateStats() {
-        // Обновляем только число ошибок, а не всю строку
         this.mistakesElement.textContent = this.game.mistakes;
     }
 
@@ -355,20 +483,13 @@ class App {
 
     showWin() {
         this.stopTimer();
-
         document.getElementById('win-time').textContent = this.timerElement.textContent;
         document.getElementById('win-mistakes').textContent = this.game.mistakes;
-
         const diffNames = {
-            easy: 'Легко',
-            medium: 'Средне',
-            hard: 'Сложно',
-            expert: 'Эксперт'
+            easy: 'Легко', medium: 'Средне', hard: 'Сложно', expert: 'Эксперт'
         };
         document.getElementById('win-difficulty').textContent = diffNames[this.game.difficulty];
-
         this.showScreen('win-screen');
-
         if (window.navigator.vibrate) {
             window.navigator.vibrate([100, 50, 100, 50, 200]);
         }
@@ -376,17 +497,11 @@ class App {
 
     gameOver() {
         this.stopTimer();
-
         document.getElementById('lose-time').textContent = this.timerElement.textContent;
-
         const diffNames = {
-            easy: 'Легко',
-            medium: 'Средне',
-            hard: 'Сложно',
-            expert: 'Эксперт'
+            easy: 'Легко', medium: 'Средне', hard: 'Сложно', expert: 'Эксперт'
         };
         document.getElementById('lose-difficulty').textContent = diffNames[this.game.difficulty];
-
         this.showScreen('lose-screen');
     }
 
@@ -401,5 +516,6 @@ class App {
 // ========== ЗАПУСК ==========
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Скрипт загружен');
+    loadSettings();
     new App();
 });
