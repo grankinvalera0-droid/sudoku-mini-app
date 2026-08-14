@@ -29,25 +29,125 @@ function saveSettings() {
 function applySettings() {
     const root = document.documentElement;
     
-    // Яркость (изменяем яркость фона и текста)
     const brightness = settings.brightness / 100;
     const bgColor = settings.theme === 'dark' ? '#1a1a2e' : '#f5f5f7';
     const textColor = settings.theme === 'dark' ? '#ffffff' : '#1a1a2e';
     const hintColor = settings.theme === 'dark' ? '#a0a0a0' : '#666666';
     
-    // Применяем цвет с учётом яркости через CSS filter
     root.style.setProperty('--tg-theme-bg-color', bgColor);
     root.style.setProperty('--tg-theme-text-color', textColor);
     root.style.setProperty('--tg-theme-hint-color', hintColor);
     
-    // Для яркости используем filter на body (не самый точный, но наглядно)
     if (settings.brightness !== 100) {
-        const filterValue = settings.brightness > 100 
-            ? `brightness(${settings.brightness}%)` 
-            : `brightness(${settings.brightness}%)`;
-        document.body.style.filter = filterValue;
+        document.body.style.filter = `brightness(${settings.brightness}%)`;
     } else {
         document.body.style.filter = 'none';
+    }
+}
+
+// ========== ЗВУКОВОЙ МЕНЕДЖЕР ==========
+class SoundManager {
+    constructor() {
+        this.audioCtx = null;
+        this.ambientSource = null;
+        this.ambientGain = null;
+        this.isPlayingAmbient = false;
+    }
+
+    // Инициализация AudioContext (вызывается при первом жесте пользователя)
+    initAudio() {
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+        }
+    }
+
+    // Воспроизведение звука победы
+    playWin() {
+        if (!settings.sound) return;
+        this.initAudio();
+        const ctx = this.audioCtx;
+        const now = ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.3, now + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.5);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(now + i * 0.15);
+            osc.stop(now + i * 0.15 + 0.5);
+        });
+    }
+
+    // Воспроизведение звука поражения
+    playLose() {
+        if (!settings.sound) return;
+        this.initAudio();
+        const ctx = this.audioCtx;
+        const now = ctx.currentTime;
+        const notes = [392, 349.23, 311.13, 261.63]; // G4, F4, Eb4, C4
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.25, now + i * 0.2);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.6);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(now + i * 0.2);
+            osc.stop(now + i * 0.2 + 0.6);
+        });
+    }
+
+    // Запуск фонового эмбиента (шум)
+    startAmbient() {
+        if (!settings.sound || this.isPlayingAmbient) return;
+        this.initAudio();
+        const ctx = this.audioCtx;
+
+        // Создаём буфер с белым шумом
+        const bufferSize = 2 * ctx.sampleRate;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.05; // тихий шум
+        }
+
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+
+        const gain = ctx.createGain();
+        gain.gain.value = 0.05; // громкость эмбиента
+
+        // Фильтр для смягчения шума
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 1000;
+
+        source.connect(filter).connect(gain).connect(ctx.destination);
+        source.start();
+
+        this.ambientSource = source;
+        this.ambientGain = gain;
+        this.isPlayingAmbient = true;
+    }
+
+    // Остановка эмбиента
+    stopAmbient() {
+        if (this.isPlayingAmbient && this.ambientSource) {
+            try {
+                this.ambientSource.stop();
+            } catch (e) {}
+            this.ambientSource = null;
+            this.ambientGain = null;
+            this.isPlayingAmbient = false;
+        }
     }
 }
 
@@ -182,6 +282,7 @@ class SudokuGame {
 class App {
     constructor() {
         this.game = null;
+        this.soundManager = new SoundManager();
         this.initElements();
         this.initEvents();
         this.applySettingsToUI();
@@ -265,9 +366,11 @@ class App {
             saveSettings();
         });
 
+        // Обработчик переключателя звука
         this.soundToggle.addEventListener('change', () => {
             settings.sound = this.soundToggle.checked;
             saveSettings();
+            this.updateSoundState();
         });
 
         this.defaultDifficultySelect.addEventListener('change', () => {
@@ -279,6 +382,7 @@ class App {
             settings = { ...DEFAULT_SETTINGS };
             saveSettings();
             this.applySettingsToUI();
+            this.updateSoundState();
             showAlert('Настройки сброшены');
         });
     }
@@ -312,22 +416,33 @@ class App {
         const isDark = settings.theme === 'dark';
         const brightness = settings.brightness / 100;
 
-        // Определяем базовые цвета темы
         const bgColor = isDark ? '#1a1a2e' : '#f5f5f7';
         const textColor = isDark ? '#ffffff' : '#1a1a2e';
         const hintColor = isDark ? '#a0a0a0' : '#666666';
 
-        // Применяем CSS переменные
         root.style.setProperty('--tg-theme-bg-color', bgColor);
         root.style.setProperty('--tg-theme-text-color', textColor);
         root.style.setProperty('--tg-theme-hint-color', hintColor);
 
-        // Применяем яркость через filter (может влиять на весь интерфейс)
         if (settings.brightness !== 100) {
             document.body.style.filter = `brightness(${settings.brightness}%)`;
         } else {
             document.body.style.filter = 'none';
         }
+    }
+
+    updateSoundState() {
+        // Если звук выключен, останавливаем эмбиент
+        if (!settings.sound) {
+            this.soundManager.stopAmbient();
+        } else if (this.isGameActive()) {
+            // Если звук включён и игра активна, запускаем эмбиент
+            this.soundManager.startAmbient();
+        }
+    }
+
+    isGameActive() {
+        return this.screens['game-screen'] && this.screens['game-screen'].classList.contains('active');
     }
 
     showScreen(screenName) {
@@ -341,13 +456,18 @@ class App {
         if (screenName === 'game-screen') {
             this.renderBoard();
             this.startTimer();
+            // Запускаем эмбиент, если звук включён
+            if (settings.sound) {
+                this.soundManager.startAmbient();
+            }
         } else {
             this.stopTimer();
+            // Останавливаем эмбиент на всех экранах, кроме игрового
+            this.soundManager.stopAmbient();
         }
     }
 
     startGame(difficulty) {
-        // Используем настройку сложности по умолчанию, если не передана явно
         if (!difficulty) {
             difficulty = settings.defaultDifficulty || 'medium';
         }
@@ -483,6 +603,8 @@ class App {
 
     showWin() {
         this.stopTimer();
+        this.soundManager.stopAmbient();
+        this.soundManager.playWin();
         document.getElementById('win-time').textContent = this.timerElement.textContent;
         document.getElementById('win-mistakes').textContent = this.game.mistakes;
         const diffNames = {
@@ -497,6 +619,8 @@ class App {
 
     gameOver() {
         this.stopTimer();
+        this.soundManager.stopAmbient();
+        this.soundManager.playLose();
         document.getElementById('lose-time').textContent = this.timerElement.textContent;
         const diffNames = {
             easy: 'Легко', medium: 'Средне', hard: 'Сложно', expert: 'Эксперт'
