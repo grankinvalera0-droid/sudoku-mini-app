@@ -43,7 +43,6 @@ class SudokuGame {
         this.generatePuzzle();
     }
 
-    // Проверка валидности числа
     isValid(board, row, col, num) {
         for (let i = 0; i < 9; i++) {
             if (board[row][i] === num || board[i][col] === num) return false;
@@ -58,7 +57,6 @@ class SudokuGame {
         return true;
     }
 
-    // Заполнение доски
     fillBoard(board) {
         for (let row = 0; row < 9; row++) {
             for (let col = 0; col < 9; col++) {
@@ -78,7 +76,6 @@ class SudokuGame {
         return true;
     }
 
-    // Перемешивание массива
     shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -87,13 +84,11 @@ class SudokuGame {
         return array;
     }
 
-    // Генерация пазла
     generatePuzzle() {
         this.solution = Array(9).fill().map(() => Array(9).fill(0));
         this.fillBoard(this.solution);
         this.puzzle = this.solution.map(row => [...row]);
 
-        // Удаляем ячейки
         const cells = [];
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 9; j++) {
@@ -110,7 +105,6 @@ class SudokuGame {
         this.board = this.puzzle.map(row => [...row]);
     }
 
-    // Проверка победы
     checkWin() {
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 9; j++) {
@@ -120,7 +114,6 @@ class SudokuGame {
         return true;
     }
 
-    // Получение подсказки
     getHint() {
         if (this.hintsLeft <= 0) return null;
         const emptyCells = [];
@@ -148,11 +141,11 @@ class App {
     }
 
     initElements() {
-        // Теперь ключи совпадают с id элементов
         this.screens = {
             'difficulty-screen': document.getElementById('difficulty-screen'),
             'game-screen': document.getElementById('game-screen'),
-            'win-screen': document.getElementById('win-screen')
+            'win-screen': document.getElementById('win-screen'),
+            'lose-screen': document.getElementById('lose-screen')
         };
         this.boardElement = document.getElementById('board');
         this.timerElement = document.getElementById('timer');
@@ -162,10 +155,10 @@ class App {
         this.hintBtn = document.querySelector('.hint-btn');
         this.newBtn = document.querySelector('.new-btn');
         this.playAgainBtn = document.querySelector('.play-again-btn');
+        this.loseRetryBtn = document.querySelector('.lose-retry-btn');
     }
 
     initEvents() {
-        // Выбор сложности
         this.difficultyButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const difficulty = btn.dataset.difficulty;
@@ -173,7 +166,6 @@ class App {
             });
         });
 
-        // Цифровая клавиатура
         this.numButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const num = parseInt(btn.dataset.num);
@@ -181,22 +173,22 @@ class App {
             });
         });
 
-        // Подсказка
         this.hintBtn.addEventListener('click', () => {
             this.showHint();
         });
 
-        // Новая игра
         this.newBtn.addEventListener('click', () => {
             this.showScreen('difficulty-screen');
         });
 
-        // Играть снова
         this.playAgainBtn.addEventListener('click', () => {
             this.showScreen('difficulty-screen');
         });
 
-        // Обработка кликов по полю
+        this.loseRetryBtn.addEventListener('click', () => {
+            this.showScreen('difficulty-screen');
+        });
+
         this.boardElement.addEventListener('click', (e) => {
             const cell = e.target.closest('.cell');
             if (!cell) return;
@@ -207,11 +199,9 @@ class App {
     }
 
     showScreen(screenName) {
-        // Скрываем все экраны
         Object.values(this.screens).forEach(screen => {
             if (screen) screen.classList.remove('active');
         });
-        // Показываем нужный экран
         if (this.screens[screenName]) {
             this.screens[screenName].classList.add('active');
         }
@@ -233,7 +223,6 @@ class App {
         this.showScreen('game-screen');
     }
 
-    // Отрисовка поля
     renderBoard() {
         this.boardElement.innerHTML = '';
         for (let row = 0; row < 9; row++) {
@@ -265,13 +254,11 @@ class App {
         }
     }
 
-    // Выбор клетки
     selectCell(row, col) {
-        if (this.game.puzzle[row][col] !== 0) return; // Это подсказка
+        if (this.game.puzzle[row][col] !== 0) return;
 
         this.game.selectedCell = { row, col };
 
-        // Подсветка связанных клеток
         document.querySelectorAll('.cell').forEach(cell => {
             cell.classList.remove('highlighted-row', 'highlighted-col', 'highlighted-box');
         });
@@ -279,7 +266,6 @@ class App {
         this.renderBoard();
     }
 
-    // Ввод числа
     inputNumber(num) {
         if (!this.game || !this.game.selectedCell) {
             this.shakeElement(document.querySelector('.numpad'));
@@ -291,17 +277,13 @@ class App {
         if (this.game.puzzle[row][col] !== 0) return;
 
         if (num === 0) {
-            // Стирание
             this.game.board[row][col] = 0;
         } else {
-            // Проверка правильности
             if (this.game.solution[row][col] !== num) {
-                // Увеличиваем счётчик ошибок
                 this.game.mistakes++;
-                this.updateStats();                 // Обновляем отображение жизней
-                this.showError(row, col);           // Подсвечиваем ошибку
+                this.updateStats();
+                this.showError(row, col);
 
-                // Если достигли лимита ошибок — поражение
                 if (this.game.mistakes >= this.game.maxMistakes) {
                     this.gameOver();
                     return;
@@ -317,7 +299,6 @@ class App {
         }
     }
 
-    // Показ подсказки
     showHint() {
         if (!this.game) return;
 
@@ -330,7 +311,6 @@ class App {
         this.game.board[hint.row][hint.col] = hint.value;
         this.renderBoard();
 
-        // Анимация подсказки
         const hintCell = document.querySelector(`[data-row="${hint.row}"][data-col="${hint.col}"]`);
         if (hintCell) {
             hintCell.classList.add('hint');
@@ -342,7 +322,6 @@ class App {
         }
     }
 
-    // Ошибка
     showError(row, col) {
         const errorCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         if (errorCell) {
@@ -351,12 +330,11 @@ class App {
         }
     }
 
-    // Обновление статистики (жизней)
     updateStats() {
-        this.mistakesElement.textContent = `${this.game.mistakes}/${this.game.maxMistakes}`;
+        // Обновляем только число ошибок, а не всю строку
+        this.mistakesElement.textContent = this.game.mistakes;
     }
 
-    // Таймер
     startTimer() {
         this.stopTimer();
         this.game.timerInterval = setInterval(() => {
@@ -375,7 +353,6 @@ class App {
         }
     }
 
-    // Победа
     showWin() {
         this.stopTimer();
 
@@ -392,21 +369,27 @@ class App {
 
         this.showScreen('win-screen');
 
-        // Вибрация (если доступно)
         if (window.navigator.vibrate) {
             window.navigator.vibrate([100, 50, 100, 50, 200]);
         }
     }
 
-    // Поражение
     gameOver() {
         this.stopTimer();
-        // Показываем знак поражения (сообщение) и возвращаем на выбор сложности
-        showAlert('💔 Ты проиграл! Слишком много ошибок.');
-        this.showScreen('difficulty-screen');
+
+        document.getElementById('lose-time').textContent = this.timerElement.textContent;
+
+        const diffNames = {
+            easy: 'Легко',
+            medium: 'Средне',
+            hard: 'Сложно',
+            expert: 'Эксперт'
+        };
+        document.getElementById('lose-difficulty').textContent = diffNames[this.game.difficulty];
+
+        this.showScreen('lose-screen');
     }
 
-    // Анимация тряски
     shakeElement(element) {
         if (!element) return;
         element.style.animation = 'none';
