@@ -11,7 +11,7 @@ if (window.Telegram && window.Telegram.WebApp) {
     document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#a0a0a0');
 }
 
-// Вспомогательная функция для показа сообщений (работает и в Telegram, и в браузере)
+// Вспомогательная функция для показа сообщений
 function showAlert(message) {
     if (tg && tg.showAlert) {
         tg.showAlert(message);
@@ -148,7 +148,7 @@ class App {
     }
 
     initElements() {
-        // Используем полные id в качестве ключей
+        // Теперь ключи совпадают с id элементов
         this.screens = {
             'difficulty-screen': document.getElementById('difficulty-screen'),
             'game-screen': document.getElementById('game-screen'),
@@ -296,10 +296,12 @@ class App {
         } else {
             // Проверка правильности
             if (this.game.solution[row][col] !== num) {
+                // Увеличиваем счётчик ошибок
                 this.game.mistakes++;
-                this.updateStats();
-                this.showError(row, col);
+                this.updateStats();                 // Обновляем отображение жизней
+                this.showError(row, col);           // Подсвечиваем ошибку
 
+                // Если достигли лимита ошибок — поражение
                 if (this.game.mistakes >= this.game.maxMistakes) {
                     this.gameOver();
                     return;
@@ -349,7 +351,7 @@ class App {
         }
     }
 
-    // Обновление статистики
+    // Обновление статистики (жизней)
     updateStats() {
         this.mistakesElement.textContent = `${this.game.mistakes}/${this.game.maxMistakes}`;
     }
@@ -399,9 +401,9 @@ class App {
     // Поражение
     gameOver() {
         this.stopTimer();
-        showAlert('Игра окончена! Слишком много ошибок.', () => {
-            this.showScreen('difficulty-screen');
-        });
+        // Показываем знак поражения (сообщение) и возвращаем на выбор сложности
+        showAlert('💔 Ты проиграл! Слишком много ошибок.');
+        this.showScreen('difficulty-screen');
     }
 
     // Анимация тряски
